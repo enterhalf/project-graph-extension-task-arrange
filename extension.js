@@ -473,6 +473,11 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
       }
     }
 
+    const isNotDelayedPin = (u) => {
+      const info = dataAfter.entityMap[u];
+      return info && pinSet.has(u) && !isDelayed(info.text);
+    };
+
     let targetUuid = null;
 
     for (const rootUuid of affectedRoots) {
@@ -488,9 +493,7 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
             const info = dataAfter.entityMap[u];
             return info && !info.text.includes("🛠️");
           });
-        if (ready.length > 0) {
-          targetUuid = ready[0];
-        }
+        targetUuid = ready.find(isNotDelayedPin) || null;
         if (targetUuid) break;
         continue;
       }
@@ -508,19 +511,19 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
         }
       }
 
-      // 规则1：撤销完成 → 自身若就绪则焦点归位
-      if (rightmostWasCompleted && pinSet.has(rightmostUuid)) {
+      // 规则1：撤销完成 → 自身若就绪且非搁置则焦点归位
+      if (rightmostWasCompleted && isNotDelayedPin(rightmostUuid)) {
         targetUuid = rightmostUuid;
         break;
       }
 
-      // 规则2：向上查找最近的已就绪祖先
+      // 规则2：向上查找最近的已就绪祖先（跳过搁置）
       {
         let current = rightmostUuid;
         while (true) {
           const parent = findParent(current, dataAfter);
           if (!parent) break;
-          if (pinSet.has(parent)) {
+          if (isNotDelayedPin(parent)) {
             targetUuid = parent;
             break;
           }
@@ -529,18 +532,18 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
       }
       if (targetUuid) break;
 
-      // 规则3：DFS 前向扫描，从右most 状态变更节点之后找首个 📌
+      // 规则3：DFS 前向扫描，找首个非搁置 📌
       for (let i = rightmostIdx + 1; i < dfsOrder.length; i++) {
-        if (pinSet.has(dfsOrder[i])) {
+        if (isNotDelayedPin(dfsOrder[i])) {
           targetUuid = dfsOrder[i];
           break;
         }
       }
       if (targetUuid) break;
 
-      // 规则4：前向未命中则从头环绕扫描
+      // 规则4：前向未命中则从头环绕扫描，跳过搁置
       for (let i = 0; i < rightmostIdx; i++) {
-        if (pinSet.has(dfsOrder[i])) {
+        if (isNotDelayedPin(dfsOrder[i])) {
           targetUuid = dfsOrder[i];
           break;
         }
