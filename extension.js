@@ -389,8 +389,8 @@ async function processDateMarkings(entityMap) {
   }
 }
 
-async function refreshTaskHighlights() {
-  const data = await buildGraphData();
+async function refreshTaskHighlights(existingData) {
+  const data = existingData || await buildGraphData();
   const { entityMap, edgeList } = data;
 
   // 根据几何分类自动设置边线型：sequential（横向）→ 虚线，parent-child（纵向）→ 实线
@@ -471,7 +471,7 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
     }
   }
 
-  const dataAfter = await refreshTaskHighlights();
+  const dataAfter = await refreshTaskHighlights(dataBefore);
 
   // 焦点转移：在受影响的树中按优先级只选一个 📌 节点
   if (affectedRoots.length > 0) {
@@ -706,6 +706,6 @@ await prg.keybinds_register(
     rootInfo.entity.color = { _: "Color", r: 26, g: 102, b: 255 };
     rootInfo.text = `${status}🛠️ ${base}`;
 
-    await refreshTaskHighlights();
+    await refreshTaskHighlights(data);
   }),
 );
