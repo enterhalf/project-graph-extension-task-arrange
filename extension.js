@@ -116,7 +116,7 @@ function getEdgeType(sY, sX, tY, tX) {
 
 async function buildGraphData() {
   // 从设置读取角度阈值（用户可在扩展设置页修改）
-  const saved = await prg.settings_getOwn("sequentialThresholdDeg");
+  const saved = await prg.settings_getOwn("顺序任务触发角度（建议小于10）");
   if (saved != null) {
     const deg = parseFloat(saved);
     if (!isNaN(deg) && deg > 0 && deg < 90) {
@@ -396,7 +396,7 @@ async function refreshTaskHighlights(existingData) {
   // 根据几何分类自动设置边线型：sequential（横向）→ 虚线，parent-child（纵向）→ 实线
   for (const e of edgeList) {
     try {
-      e.edge.lineType = e.type === "sequential" ? "dashed" : "solid";
+      e.edge.lineType = e.type === "sequential" ? "double" : "solid";
     } catch (_) {
       /* skip if edge doesn't support lineType */
     }
@@ -585,7 +585,7 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
 
 // 首次加载时初始化设置（默认 6°），之后可在扩展设置页修改
 {
-  const saved = await prg.settings_getOwn("sequentialThresholdDeg");
+  const saved = await prg.settings_getOwn("顺序任务触发角度（建议小于10）");
   if (saved != null) {
     const deg = parseFloat(saved);
     if (!isNaN(deg) && deg > 0 && deg < 90) {
@@ -593,7 +593,7 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
       SEQUENTIAL_THRESHOLD = Math.tan(deg * Math.PI / 180);
     }
   } else {
-    await prg.settings_setOwn("sequentialThresholdDeg", 6);
+    await prg.settings_setOwn("顺序任务触发角度（建议小于10）", 6);
   }
 }
 
