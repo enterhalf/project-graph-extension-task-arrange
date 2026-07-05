@@ -6,6 +6,9 @@ Project Graph (https://github.com/graphif/project-graph) 任务安排 & 任务�
 
 ![例子](assets/最小例子.png)
 
+## 安装
+
+从 [Releases](../../releases) 下载 `.prg`，拖入 Project Graph 即可。
 
 ## 快速上手
 
@@ -28,7 +31,7 @@ Project Graph (https://github.com/graphif/project-graph) 任务安排 & 任务�
 
 📌 表示当前所有前置条件已满足、可以开始做的任务。
 
-## 日期与搁置
+## 日期
 
 节点文本中的日期会被自动识别，显示 ⏳ 倒计时，截止日越近颜色越深。
 
@@ -38,7 +41,7 @@ Project Graph (https://github.com/graphif/project-graph) 任务安排 & 任务�
 | `YYYY-M-D` | 2026-05-19 |
 | `M月D日` | 5月19日 |
 
-### 搁置
+## 搁置
 
 有些任务还没到可以做的时间，并不想让它在列表里激活干扰视线。在节点文本中加入 **搁置**、**delay** 或 **@de**，该任务就不会被自动选中，📌 显示为黄色。
 
@@ -48,10 +51,6 @@ Project Graph (https://github.com/graphif/project-graph) 任务安排 & 任务�
 | 2 个日期 | 时间段：与无搁置相同，第一个开始、第二个截止 |
 
 不加搁置时，单个日期默认为截止日期。
-
-## 安装
-
-从 [Releases](../../releases) 下载 `.prg`，拖入 Project Graph 即可。
 
 ## 许可证
 

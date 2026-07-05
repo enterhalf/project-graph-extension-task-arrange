@@ -13,13 +13,18 @@
 node -e "const fs=require('fs');const e=require('@msgpack/msgpack');const j=JSON.parse(fs.readFileSync('metadata.json','utf8'));fs.writeFileSync('metadata.msgpack',e.encode(j))"
 ```
 
-## 打包发布
+## 发布流程
 
-只选中这 4 个文件，右键压缩为 zip，改后缀为 `.prg`：
+1. 推送代码到 main 分支
+2. 打 tag：`git tag vx.x.x && git push origin vx.x.x`
+3. GitHub Actions 自动打包 `.prg` 并创建 Release
+4. CI 会自动将 tag 版本号（去掉 v）注入 `metadata.json` 再生成 `metadata.msgpack`，打包时只取这 4 个文件：
+   - `extension.js`
+   - `metadata.msgpack`
+   - `README.md`
+   - `icon.svg`
 
-- `extension.js`
-- `metadata.msgpack`
-- `README.md`
-- `icon.svg`
+## README 编写原则
 
-**不要打包** `node_modules/`、`package.json`、`*.prg`。
+- 用户只关心：插件做什么、怎么用、快捷键是什么
+- 不要写实现细节，核心概念说清楚即可
