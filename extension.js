@@ -6,7 +6,8 @@
 
 const DELAY_KEYWORDS = ["搁置", "delay", "@de"];
 
-const SEQUENTIAL_THRESHOLD = Math.tan(12 * Math.PI / 180);
+let sequentialThresholdDeg = 6;
+let SEQUENTIAL_THRESHOLD = Math.tan(6 * Math.PI / 180);
 
 const COLOR_ACTIVATE = { _: "Color", r: 254, g: 123, b: 1 };
 const COLOR_DELAY = { _: "Color", r: 234, g: 179, b: 8 };
@@ -114,6 +115,15 @@ function getEdgeType(sY, sX, tY, tX) {
 }
 
 async function buildGraphData() {
+  // 从设置读取角度阈值（用户可在扩展设置页修改）
+  const saved = await prg.settings_getOwn("sequentialThresholdDeg");
+  if (saved != null) {
+    const deg = parseFloat(saved);
+    if (!isNaN(deg) && deg > 0 && deg < 90) {
+      SEQUENTIAL_THRESHOLD = Math.tan(deg * Math.PI / 180);
+    }
+  }
+
   const project = await prg.tabs_getCurrentProject();
   const stageManager = await project.stageManager;
   const allTextNodes = await stageManager.getTextNodes();
@@ -144,7 +154,7 @@ async function buildGraphData() {
       const tData = entityMap[tUuid];
       if (!sData || !tData) continue;
       const type = getEdgeType(sData.y, sData.x, tData.y, tData.x);
-      if (type) edgeList.push({ sUuid, tUuid, type });
+      if (type) edgeList.push({ sUuid, tUuid, type, edge });
     } catch (_) {
       /* skip malformed edges */
     }
@@ -162,7 +172,7 @@ async function buildGraphData() {
     }
   }
 
-  return { entityMap, children, seqNext, seqPrev };
+  return { entityMap, children, seqNext, seqPrev, edgeList };
 }
 
 function isSeqChainComplete(uuid, completedSet, data, visited) {
@@ -381,7 +391,16 @@ async function processDateMarkings(entityMap) {
 
 async function refreshTaskHighlights() {
   const data = await buildGraphData();
-  const { entityMap } = data;
+  const { entityMap, edgeList } = data;
+
+  // 根据几何分类自动设置边线型：sequential（横向）→ 虚线，parent-child（纵向）→ 实线
+  for (const e of edgeList) {
+    try {
+      e.edge.lineType = e.type === "sequential" ? "dashed" : "solid";
+    } catch (_) {
+      /* skip if edge doesn't support lineType */
+    }
+  }
 
   // find all roots (nodes with 🛠️ icon)
   const rootUuids = [];
@@ -563,6 +582,20 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
 }
 
 // --- keybinds ---
+
+// 首次加载时初始化设置（默认 6°），之后可在扩展设置页修改
+{
+  const saved = await prg.settings_getOwn("sequentialThresholdDeg");
+  if (saved != null) {
+    const deg = parseFloat(saved);
+    if (!isNaN(deg) && deg > 0 && deg < 90) {
+      sequentialThresholdDeg = deg;
+      SEQUENTIAL_THRESHOLD = Math.tan(deg * Math.PI / 180);
+    }
+  } else {
+    await prg.settings_setOwn("sequentialThresholdDeg", 6);
+  }
+}
 
 await prg.keybinds_register(
   "smartOKK",
