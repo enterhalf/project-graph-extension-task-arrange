@@ -453,6 +453,7 @@ async function refreshTaskHighlights() {
   }
 
   await processDateMarkings(entityMap);
+  return data;
 }
 
 async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) {
@@ -470,11 +471,10 @@ async function handlePostStatusChange(stageManager, uuidList, wasCompletedList) 
     }
   }
 
-  await refreshTaskHighlights();
+  const dataAfter = await refreshTaskHighlights();
 
   // 焦点转移：在受影响的树中按优先级只选一个 📌 节点
   if (affectedRoots.length > 0) {
-    const dataAfter = await buildGraphData();
 
     // 构建 completedSet
     const completedSet = new Set();
