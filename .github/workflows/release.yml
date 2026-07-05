@@ -1,0 +1,57 @@
+name: Release PRG
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - run: npm install
+
+      - name: Inject tag version into metadata
+        run: |
+          TAG="${{ github.ref_name }}"           # e.g. v1.2.3
+          VER="${TAG#v}"                          # strip leading 'v' → 1.2.3
+          node -e "
+            const fs = require('fs');
+            const meta = JSON.parse(fs.readFileSync('metadata.json', 'utf8'));
+            meta.extension.version = '$VER';
+            fs.writeFileSync('metadata.json', JSON.stringify(meta, null, 2) + '\n');
+          "
+          echo "Extension version set to $VER"
+
+      - name: Generate metadata.msgpack
+        run: |
+          node -e "
+            const fs = require('fs');
+            const { encode } = require('@msgpack/msgpack');
+            const meta = JSON.parse(fs.readFileSync('metadata.json', 'utf8'));
+            fs.writeFileSync('metadata.msgpack', encode(meta));
+          "
+
+      - name: Package PRG
+        run: |
+          mkdir -p dist
+          zip dist/task-arrange.prg \
+            extension.js \
+            metadata.msgpack \
+            README.md \
+            icon.svg
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Task Arrange ${{ github.ref_name }}"
+          files: dist/task-arrange.prg
+          generate_release_notes: true

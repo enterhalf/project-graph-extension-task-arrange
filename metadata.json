@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "extension": {
+    "id": "com.enterhalf.task-arrange",
+    "name": "Task Arrange",
+    "description": "任务排布与管理：快捷键切换完成/失败状态、设置任务树根节点、自动高亮就绪任务、日期倒计时与搁置管理",
+    "version": "1.0.0",
+    "author": "enterhalf"
+  }
+}
